@@ -25,8 +25,6 @@ const (
 )
 
 type FFMPEG struct {
-	// Ftype 处理类型 0:截屏
-	// Ftype int `json:"type"`
 	// Finput 源文件
 	Finput string `json:"input"`
 	// Foutput 输出文件
