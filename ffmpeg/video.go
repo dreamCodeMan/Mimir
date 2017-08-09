@@ -188,7 +188,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				case 0:
 					_dict[shot.Simg] = ""
 				case 1:
-					fmt.Println(s)
+					// fmt.Println(s)
 					if strings.Contains(s, "frame=") {
 						_st := strings.Split(s, "fps=")
 						_i := strings.Fields(_st[0])
@@ -380,7 +380,7 @@ func _exec(command string, _dataChan chan chan string) error {
 				l := len(strings.TrimSpace(string(out)))
 				if guard < l {
 					str := string(out)[guard:l]
-					fmt.Println(str)
+					// fmt.Println(str)
 					_chan <- str
 					guard = l
 				}
