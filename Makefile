@@ -1,7 +1,8 @@
 .PHONY: build
 
 build:
-	@go build
+	@export TAG=dev-`date +%Y%m%d`
+	@go build -ldflags "-X main._VERSION_='$(TAG)'"
 
 run: build
 	./Mimir

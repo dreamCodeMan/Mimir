@@ -9,6 +9,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
+var _VERSION_ = "unknown"
+
 func main() {
 	os, err := GetOS()
 	if err != nil {
@@ -38,6 +40,6 @@ func main() {
 }
 
 func _testConnect(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fmt.Fprintf(w, "My Name Is LiLei!")
+	fmt.Fprintf(w, "My Name Is LiLei! "+_VERSION_)
 	return
 }
