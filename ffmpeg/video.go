@@ -99,7 +99,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		command += (oi[0] + "%03d." + oi[1])
 		cmds = append(cmds, command)
 	case 3:
-		duration, err := _getVideoLength(shot)
+		duration, err := _getVideoLength(shot.Ffmpeg.Finput)
 		if err != nil {
 			// 获取视频长度失败，默认只截取一张
 			command += "-ss "
@@ -300,9 +300,9 @@ func _generateRandomLength(duration string, num int) []string {
 }
 
 // _get_video_length 获取视频总长度
-func _getVideoLength(shot Shot) (string, error) {
+func _getVideoLength(input string) (string, error) {
 
-	command := "-i " + shot.Ffmpeg.Finput
+	command := "-i " + input
 
 	_dataChan := make(chan chan string)
 	_errorChan := make(chan error)

@@ -29,5 +29,7 @@ func main() {
 
 	router := httprouter.New()
 	router.POST("/v1/video/shot", ffmpeg.VideoShot)
+	router.POST("/v1/video/fps", ffmpeg.VideoFps)
+
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
