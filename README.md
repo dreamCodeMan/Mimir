@@ -28,9 +28,10 @@ POST|/video/shot| Screen Shot | Shot Object | ShotRespon Object |
     "value": string //类型值
 	                // 当类型为0时，此处按照hh:mm:ss 填写时间
 	                // 当类型为1时, 此处填写秒数
+                    // 当类型为2时，此处填写生成的图片个数
     "outformat":string  //输出的图片类型
 	                    // 当类型为0时，此处为输出的图片名称
-	                    // 当类型为1时，按照以下格式赋值 图片前缀|类型后缀 e.g. img|jpg 以img为前缀的jpg类型图片
+	                    // 当类型为1/2时，按照以下格式赋值 图片前缀|类型后缀 e.g. img|jpg 以img为前缀的jpg类型图片
     "size":string //输出指定尺寸的图片 e.g. 320*180
 }
 ```

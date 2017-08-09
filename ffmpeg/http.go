@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -70,6 +71,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
+	var cmds []string
 	command := ""
 
 	switch shot.Stype {
@@ -77,8 +79,10 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		command += "-ss "
 		command += (shot.Svalue + " ")
 		command += ("-i " + shot.Ffmpeg.Finput + " ")
-		command += "-vframes 1 "
+		command += "-y -vframes 1 "
 		command += shot.Simg
+
+		cmds = append(cmds, command)
 	case 1:
 		command += ("-i " + shot.Ffmpeg.Finput + " ")
 		command += ("-vf fps=fps=1/" + shot.Svalue + " ")
@@ -88,44 +92,154 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 			oi[1] = "png"
 		}
 		command += (oi[0] + "%03d." + oi[1])
-	}
-
-	_data_chan := make(chan string)
-	go func() {
-		err = _exec(command, _data_chan)
+		cmds = append(cmds, command)
+	case 3:
+		fmt.Println("3======")
+		duration, err := _getVideoLength(shot)
+		fmt.Println("3------")
 		if err != nil {
-			w.WriteHeader(ERROR)
-			fmt.Fprintf(w, CMD_EXEC_ERROR+err.Error())
-			close(_data_chan)
-			return
-		}
-	}()
-
-	var sr ShotResponse
-	_dict := make(map[string]string)
-	for s := range _data_chan {
-		switch shot.Stype {
-		case 0:
-		case 1:
-			if strings.Contains(s, "frame=") {
-				_st := strings.Split(s, "fps=")
-				_i := strings.Fields(_st[0])
-				_inx, err := strconv.Atoi(_i[1])
-				if err != nil {
-					_inx = 1
-				}
+			// 获取视频长度失败，默认只截取一张
+			command += "-ss "
+			command += (" 00:00:01 ")
+			command += ("-i " + shot.Ffmpeg.Finput + " ")
+			command += "-y -vframes 1 "
+			oi := strings.Split(shot.Simg, "|")
+			if len(oi) != 2 {
+				oi[0] = "img"
+				oi[1] = "png"
+			}
+			command += (oi[0] + "." + oi[1])
+			cmds = append(cmds, command)
+		} else {
+			num, err := strconv.Atoi(shot.Svalue)
+			if err != nil {
+				num = 1
+			}
+			_durList := _generateRandomLength(duration, num)
+			fmt.Println(_durList)
+			for i, d := range _durList {
+				command = ""
+				command += "-ss "
+				command += (d + " ")
+				command += ("-i " + shot.Ffmpeg.Finput + " ")
+				command += "-y -vframes 1 "
 				oi := strings.Split(shot.Simg, "|")
 				if len(oi) != 2 {
 					oi[0] = "img"
 					oi[1] = "png"
 				}
-				_formate := oi[0] + "%03d." + oi[1]
-				_dict[fmt.Sprintf(_formate, _inx)] = ""
+				command += (oi[0] + strconv.Itoa(i) + "." + oi[1])
+				cmds = append(cmds, command)
 			}
 		}
+
+		if len(cmds) == 0 {
+			command += "-ss "
+			command += (" 00:00:01 ")
+			command += ("-i " + shot.Ffmpeg.Finput + " ")
+			command += "-y -vframes 1 "
+			oi := strings.Split(shot.Simg, "|")
+			if len(oi) != 2 {
+				oi[0] = "img"
+				oi[1] = "png"
+			}
+			command += (oi[0] + "." + oi[1])
+			cmds = append(cmds, command)
+		}
+
 	}
 
-	fmt.Println("---END---")
+	_dataChan := make(chan chan string)
+	_errorChan := make(chan error)
+	_exit := make(chan int)
+	go func() {
+		for _, c := range cmds {
+			err = _exec(c, _dataChan)
+			if err != nil {
+				_errorChan <- err
+			}
+			_exit <- 1
+		}
+		fmt.Println("Exec控制协程退出")
+		return
+	}()
+
+	var sr ShotResponse
+	_dict := make(map[string]string)
+	// fmt.Println(len(cmds))
+	for _, c := range cmds {
+		_chan := make(chan string)
+		_dataChan <- _chan
+		isExit := false
+		for {
+			select {
+			case s := <-_chan:
+				switch shot.Stype {
+				case 0:
+					_dict[shot.Simg] = ""
+				case 1:
+					if strings.Contains(s, "frame=") {
+						_st := strings.Split(s, "fps=")
+						_i := strings.Fields(_st[0])
+						_inx, err := strconv.Atoi(_i[1])
+						if err != nil {
+							_inx = 1
+						}
+						oi := strings.Split(shot.Simg, "|")
+						if len(oi) != 2 {
+							oi[0] = "img"
+							oi[1] = "png"
+						}
+						_formate := oi[0] + "%03d." + oi[1]
+						_dict[fmt.Sprintf(_formate, _inx)] = ""
+					}
+				case 3:
+					imgList := strings.Fields(c)
+					_dict[imgList[len(imgList)-1]] = ""
+				}
+			case e := <-_errorChan:
+				w.WriteHeader(ERROR)
+				fmt.Fprintf(w, CMD_EXEC_ERROR+e.Error())
+				return
+			case <-_exit:
+				isExit = true
+			}
+
+			if isExit {
+				break
+			}
+		}
+		// for s := range _data_chan {
+		// 	switch shot.Stype {
+		// 	case 0:
+		// 		_dict[shot.Simg] = ""
+		// 	case 1:
+		// 		if strings.Contains(s, "frame=") {
+		// 			_st := strings.Split(s, "fps=")
+		// 			_i := strings.Fields(_st[0])
+		// 			_inx, err := strconv.Atoi(_i[1])
+		// 			if err != nil {
+		// 				_inx = 1
+		// 			}
+		// 			oi := strings.Split(shot.Simg, "|")
+		// 			if len(oi) != 2 {
+		// 				oi[0] = "img"
+		// 				oi[1] = "png"
+		// 			}
+		// 			_formate := oi[0] + "%03d." + oi[1]
+		// 			_dict[fmt.Sprintf(_formate, _inx)] = ""
+		// 		}
+		// 	}
+		// }
+
+	}
+
+	// if err = <-_errorChan; err != nil {
+	// 	w.WriteHeader(ERROR)
+	// 	fmt.Fprintf(w, CMD_EXEC_ERROR+err.Error())
+	// 	return
+	// }
+	// fmt.Println("---END---")
 	for k := range _dict {
 		sr.Img = append(sr.Img, k)
 	}
@@ -133,21 +247,122 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	if err != nil {
 		w.WriteHeader(ERROR)
 		fmt.Fprintf(w, PARSE_JSON2BODY_ERROR)
-		close(_data_chan)
+		close(_dataChan)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprintf(w, string(respon))
+
+	fmt.Println("Video Operation Finish")
 	return
 }
 
-// func _parse_respon(data string, s *Shot) *ShotResponse {
-// 	sr := new(ShotResponse)
-// 	return sr
-// }
+// _generateRandomLength 获取随机的时间点 duration 总的视频长度 hh:mm:ss格式 num 生成的随机时间点个数
+func _generateRandomLength(duration string, num int) []string {
+	var ds []string
+	duartions := strings.Split(duration, ":")
+	if len(duartions) != 3 {
+
+	} else {
+		// 获取hour
+		for index := 0; index < num; index++ {
+
+			_time := ""
+			hour, err := strconv.Atoi(duartions[0])
+			if err != nil {
+				hour = 0
+			}
+
+			if hour > 1 {
+				_rhour := rand.Intn(hour)
+				_time += fmt.Sprintf("%02d:", _rhour)
+			} else {
+				_time += "00:"
+			}
+
+			min, err := strconv.Atoi(duartions[1])
+			if err != nil {
+				min = 0
+			}
+
+			if min > 1 {
+				_rmin := rand.Intn(min)
+				_time += fmt.Sprintf("%02d:", _rmin)
+			} else {
+				_time += "00:"
+			}
+
+			sec, err := strconv.ParseFloat(duartions[2], 64)
+			if err != nil {
+				sec = 0
+			}
+
+			if sec > 1 {
+				_rsec := rand.Float32() * 60.0
+				_time += fmt.Sprintf("%02.02g", _rsec)
+			} else {
+				_time += "00:"
+			}
+
+			ds = append(ds, _time)
+		}
+
+	}
+	return ds
+}
+
+// _get_video_length 获取视频总长度
+func _getVideoLength(shot Shot) (string, error) {
+
+	command := "-i " + shot.Ffmpeg.Finput
+
+	_dataChan := make(chan chan string)
+	_errorChan := make(chan error)
+	_exit := make(chan int)
+	go func() {
+		err := _exec(command, _dataChan)
+		if err != nil {
+			_errorChan <- err
+		}
+
+		_exit <- 1
+	}()
+
+	_chan := make(chan string)
+	_dataChan <- _chan
+	for {
+		// fmt.Println("-=-=")
+		isExit := false
+		select {
+		case e := <-_errorChan:
+			return "", e
+		case d := <-_chan:
+			// fmt.Println(d)
+			if strings.Contains(d, "Duration: ") {
+				_split := strings.Split(d, "Duration")
+				field := strings.Fields(_split[1])
+				vt := field[1]
+				return vt[:strings.Index(field[1], ",")], nil
+			}
+		case <-_exit:
+			isExit = true
+		}
+
+		if isExit {
+			break
+		}
+	}
+
+	return "", nil
+}
 
 // _exec 执行指定的命令 _data_chan 用于返回命令执行的输出
-func _exec(command string, _data_chan chan string) error {
+func _exec(command string, _dataChan chan chan string) error {
+	// 接受一个用于数据同步的chan
+	_chan := <-_dataChan
+
+	fmt.Println("准备执行命令:" + command)
 	cmds := strings.Fields(command)
 	// fmt.Println(cmds)
 	cmd := exec.Command("ffmpeg", cmds...)
@@ -167,7 +382,7 @@ func _exec(command string, _data_chan chan string) error {
 	}()
 
 	var out []byte
-	// var responData string
+
 	go func() {
 		guard := 0 //guard哨兵用于判断当前命令是否发生变化
 
@@ -178,7 +393,7 @@ func _exec(command string, _data_chan chan string) error {
 			if guard < l {
 				str := string(out)[guard:l]
 				// fmt.Println(str)
-				_data_chan <- str
+				_chan <- str
 				guard = l
 			}
 		}
@@ -191,7 +406,8 @@ func _exec(command string, _data_chan chan string) error {
 		return err
 	}
 
-	close(_data_chan)
+	close(_chan)
+	fmt.Println("exec finish")
 	return nil
 }
 
