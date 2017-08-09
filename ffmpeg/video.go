@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -72,6 +73,10 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	}
 
 	var cmds []string
+	outDir := filepath.Dir(shot.Ffmpeg.Finput)
+	outDir += "/"
+	shot.Simg = outDir + shot.Simg
+
 	command := ""
 
 	switch shot.Stype {
