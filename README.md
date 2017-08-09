@@ -9,6 +9,8 @@ Methods|API| USAGE| PARAMETER|RESPONSE|
 -------|----|-----|----------|--------|
 GET| / | Test Connect| --- | String |
 POST|/video/shot| Screen Shot | Shot Object | ShotRespon Object |
+POST|/video/fps| Change video fps | Fps Object | FpsRespon Object |
+GET|/video/fps/:token| Get video change progress | --- | FpsRespon Object |
 
 ## API Object
 
@@ -37,9 +39,29 @@ POST|/video/shot| Screen Shot | Shot Object | ShotRespon Object |
 ```
 
 ### ShotRespon Object
+```
 {
     "img": []string // 生成的截图文件名
 }
+```
+
+### Fps Object
+```
+{
+    "video":<ffmpeg object>
+    "fps":int // 准备转变的帧率
+}
+```
+
+### FpsRespon Object
+```
+{
+    "fps":int // 视频原始帧率,当为查询请求时，此属性为0
+    "token":string // 视频唯一标示，用于查询进度使用
+    "progress":float32 // 视频变帧进度，创建变帧请求时返回0， 当token不存在时返回-1，正常变帧时返回当前进度
+}
+
+```
 
 ## Error Code
 
@@ -49,3 +71,4 @@ Code|Value|
 10002|Body转换为Json出错|
 10003|FFmpeg命令支持失败|
 10004|Json转换为Body出错|
+10005|视频变帧出错|
