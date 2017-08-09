@@ -19,6 +19,14 @@ func main() {
 		DownFFmpeg(os)
 	}
 
+	// go func() {
+	// 	for {
+	// 		fmt.Println(runtime.NumGoroutine())
+	// 		time.Sleep(time.Duration(5) * time.Second)
+	// 	}
+
+	// }()
+
 	router := httprouter.New()
 	router.POST("/v1/video/shot", ffmpeg.VideoShot)
 	log.Fatal(http.ListenAndServe(":8080", router))

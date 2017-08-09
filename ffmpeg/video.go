@@ -94,9 +94,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		command += (oi[0] + "%03d." + oi[1])
 		cmds = append(cmds, command)
 	case 3:
-		fmt.Println("3======")
 		duration, err := _getVideoLength(shot)
-		fmt.Println("3------")
 		if err != nil {
 			// 获取视频长度失败，默认只截取一张
 			command += "-ss "
@@ -152,6 +150,16 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	_dataChan := make(chan chan string)
 	_errorChan := make(chan error)
 	_exit := make(chan int)
+
+	defer func() {
+		close(_dataChan)
+		close(_errorChan)
+		close(_exit)
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
 	go func() {
 		for _, c := range cmds {
 			err = _exec(c, _dataChan)
@@ -159,8 +167,9 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				_errorChan <- err
 			}
 			_exit <- 1
+			fmt.Println("Exec控制协程退出")
 		}
-		fmt.Println("Exec控制协程退出")
+
 		return
 	}()
 
@@ -170,6 +179,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 	for _, c := range cmds {
 		_chan := make(chan string)
 		_dataChan <- _chan
+
 		isExit := false
 		for {
 			select {
@@ -178,6 +188,7 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				case 0:
 					_dict[shot.Simg] = ""
 				case 1:
+					fmt.Println(s)
 					if strings.Contains(s, "frame=") {
 						_st := strings.Split(s, "fps=")
 						_i := strings.Fields(_st[0])
@@ -209,37 +220,8 @@ func VideoShot(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 				break
 			}
 		}
-		// for s := range _data_chan {
-		// 	switch shot.Stype {
-		// 	case 0:
-		// 		_dict[shot.Simg] = ""
-		// 	case 1:
-		// 		if strings.Contains(s, "frame=") {
-		// 			_st := strings.Split(s, "fps=")
-		// 			_i := strings.Fields(_st[0])
-		// 			_inx, err := strconv.Atoi(_i[1])
-		// 			if err != nil {
-		// 				_inx = 1
-		// 			}
-		// 			oi := strings.Split(shot.Simg, "|")
-		// 			if len(oi) != 2 {
-		// 				oi[0] = "img"
-		// 				oi[1] = "png"
-		// 			}
-		// 			_formate := oi[0] + "%03d." + oi[1]
-		// 			_dict[fmt.Sprintf(_formate, _inx)] = ""
-		// 		}
-		// 	}
-		// }
-
 	}
 
-	// if err = <-_errorChan; err != nil {
-	// 	w.WriteHeader(ERROR)
-	// 	fmt.Fprintf(w, CMD_EXEC_ERROR+err.Error())
-	// 	return
-	// }
-	// fmt.Println("---END---")
 	for k := range _dict {
 		sr.Img = append(sr.Img, k)
 	}
@@ -325,7 +307,6 @@ func _getVideoLength(shot Shot) (string, error) {
 		if err != nil {
 			_errorChan <- err
 		}
-
 		_exit <- 1
 	}()
 
@@ -362,9 +343,9 @@ func _exec(command string, _dataChan chan chan string) error {
 	// 接受一个用于数据同步的chan
 	_chan := <-_dataChan
 
+	_needExit := make(chan int)
 	fmt.Println("准备执行命令:" + command)
 	cmds := strings.Fields(command)
-	// fmt.Println(cmds)
 	cmd := exec.Command("ffmpeg", cmds...)
 
 	f, err := pty.Start(cmd)
@@ -377,6 +358,8 @@ func _exec(command string, _dataChan chan chan string) error {
 		log.Fatal(err)
 	}
 
+	fmt.Println(tFile.Name())
+
 	defer func() {
 		tFile.Close()
 	}()
@@ -385,17 +368,28 @@ func _exec(command string, _dataChan chan chan string) error {
 
 	go func() {
 		guard := 0 //guard哨兵用于判断当前命令是否发生变化
+		isExit := false
 
 		for {
-			out, _ = ioutil.ReadFile(tFile.Name())
-			l := len(strings.TrimSpace(string(out)))
 
-			if guard < l {
-				str := string(out)[guard:l]
-				// fmt.Println(str)
-				_chan <- str
-				guard = l
+			select {
+			case <-_needExit:
+				isExit = true
+			default:
+				out, _ = ioutil.ReadFile(tFile.Name())
+				l := len(strings.TrimSpace(string(out)))
+				if guard < l {
+					str := string(out)[guard:l]
+					fmt.Println(str)
+					_chan <- str
+					guard = l
+				}
 			}
+
+			if isExit {
+				return
+			}
+
 		}
 	}()
 
@@ -407,6 +401,7 @@ func _exec(command string, _dataChan chan chan string) error {
 	}
 
 	close(_chan)
+	_needExit <- 1
 	fmt.Println("exec finish")
 	return nil
 }
