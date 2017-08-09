@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -28,9 +29,15 @@ func main() {
 	// }()
 
 	router := httprouter.New()
+	router.GET("/v1/", _testConnect)
 	router.POST("/v1/video/shot", ffmpeg.VideoShot)
 	router.POST("/v1/video/fps", ffmpeg.VideoFps)
 	router.GET("/v1/video/fps/:token", ffmpeg.VideoFpsGet)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func _testConnect(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	fmt.Fprintf(w, "My Name Is LiLei!")
+	return
 }
