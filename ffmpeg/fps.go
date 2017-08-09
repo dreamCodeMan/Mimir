@@ -27,7 +27,36 @@ type FpsResponse struct {
 	// Ffps 视频原始帧率
 	Ffps int `json:"fps"`
 	// Ftoken 视频唯一标示
-	Ftoken string `json:"token"`
+	Ftoken    string  `json:"token"`
+	Fprogress float32 `json:"progress"`
+}
+
+// VideoFpsGet 获取指定token的变帧进度
+func VideoFpsGet(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+	token := p.ByName("token")
+	_fpsToken := getFpsToken()
+
+	fps := &FpsResponse{
+		Ftoken: token,
+	}
+	if _, ok := _fpsToken[token]; ok {
+		fps.Fprogress = _fpsToken[token]
+	} else {
+		fps.Fprogress = -1
+	}
+
+	respon, err := json.Marshal(fps)
+	if err != nil {
+		w.WriteHeader(ERROR)
+		fmt.Fprintf(w, PARSE_JSON2BODY_ERROR)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, string(respon))
+
+	// fmt.Println("Video Operation Finish")
+	return
 }
 
 // VideoFps 修改指定视频的帧率
@@ -127,7 +156,7 @@ func VideoFps(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 						_dualTime := _paserDurl(_time[1])
 						// fmt.Println(_time[1], _dualTime, _originLong)
 						_fpsToken[token] = (float32(_dualTime) / float32(_originLong))
-						fmt.Println(_fpsToken[token])
+						// fmt.Println(_fpsToken[token])
 					}
 				case <-_exit:
 					isExit = true
