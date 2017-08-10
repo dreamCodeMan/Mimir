@@ -15,6 +15,9 @@ POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
 PUT|/video/ratio| Moidfy Video Ratio  | Ratio Object | RatioRespon Object |
 POST|/video/concat| Concat Multiple Videos | Concat Object | ConcatRespon Object|
 GET|/video/concat/:token| Get Concat Progress | --- | ConcatRespon Object|
+POST|/video/logo| Add Logo In Video | Logo Object | LogoRespon Object|
+GET|/video/logo/:token| Get Logo Progress | --- | LogoRespon Object|
+
 
 ## API Object
 
@@ -97,6 +100,23 @@ GET|/video/concat/:token| Get Concat Progress | --- | ConcatRespon Object|
 {
     "token": string //视频唯一标示
     "progress": float32 //合并进度
+}
+```
+
+### Logo Object
+```
+{
+    "video":<ffmpeg object>,
+    "logo": string // logo文件全路径
+    "postion", string // logo坐标位置,默认为00:00. 
+}
+```
+
+### LogoRespon Object
+```
+{
+    "token": string //视频唯一标示
+    "progress": float32 //Logo添加进度
 }
 ```
 
