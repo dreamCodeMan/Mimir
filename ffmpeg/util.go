@@ -20,6 +20,9 @@ var _fps_token map[string]float32
 // _ratio_token 保存分辨率操作
 var _ratio_token map[string]float32
 
+// _concat_token 保存合并操作
+var _concat_token map[string]float32
+
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // getFpsToken 获取fps帧率
@@ -38,6 +41,15 @@ func getRatioToken() map[string]float32 {
 	}
 
 	return _ratio_token
+}
+
+// getConcatToken 获取合并进度
+func getConcatToken() map[string]float32 {
+	if _concat_token == nil {
+		_concat_token = make(map[string]float32)
+	}
+
+	return _concat_token
 }
 
 func getToken(n int) string {
@@ -127,6 +139,7 @@ func _getVideoLength(input string) (string, error) {
 				_split := strings.Split(d, "Duration")
 				field := strings.Fields(_split[1])
 				vt := field[1]
+				// fmt.Println(vt)
 				return vt[:strings.Index(field[1], ",")], nil
 			}
 		case <-_exit:
@@ -147,8 +160,12 @@ func _exec(command string, _dataChan chan chan string) error {
 	_chan := <-_dataChan
 
 	_needExit := make(chan int)
-	fmt.Println("准备执行命令:" + command)
 	cmds := strings.Fields(command)
+
+	cmds = _paddingCMD(cmds)
+	fmt.Println("准备执行命令:")
+	fmt.Println(cmds)
+
 	cmd := exec.Command("ffmpeg", cmds...)
 
 	f, err := pty.Start(cmd)
@@ -207,4 +224,18 @@ func _exec(command string, _dataChan chan chan string) error {
 	_needExit <- 1
 	fmt.Println("exec finish")
 	return nil
+}
+
+// _paddingCMD 过滤命令,某些参数需要添加空格
+func _paddingCMD(cmd []string) []string {
+	var _c []string
+	for i, c := range cmd {
+		if strings.Contains(c, "filter_complex") {
+			cmd[i+1] += " "
+		}
+
+		_c = append(_c, c)
+	}
+
+	return _c
 }

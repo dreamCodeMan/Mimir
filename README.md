@@ -13,6 +13,8 @@ POST|/video/fps| Change video fps | Fps Object | FpsRespon Object |
 GET|/video/fps/:token| Get video change progress | --- | FpsRespon Object |
 POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
 PUT|/video/ratio| Moidfy Video Ratio  | Ratio Object | RatioRespon Object |
+POST|/video/concat| Concat Multiple Videos | Concat Object | ConcatRespon Object|
+GET|/video/concat/:token| Get Concat Progress | --- | ConcatRespon Object|
 
 ## API Object
 
@@ -82,6 +84,22 @@ PUT|/video/ratio| Moidfy Video Ratio  | Ratio Object | RatioRespon Object |
 }
 ```
 
+### Concat Object
+```
+{
+    "input":[]string // 源文件全路径，将按照文件顺序依次合并
+    "output": string // 输出文件全路径,不得为空
+}
+```
+
+### RatioRespon Object
+```
+{
+    "token": string //视频唯一标示
+    "progress": float32 //合并进度
+}
+```
+
 ## Error Code
 
 Code|Value|
@@ -92,3 +110,4 @@ Code|Value|
 10004|Json转换为Body出错|
 10005|视频变帧出错|
 10006|输入文件源为空|
+10007|输出文件为空|
