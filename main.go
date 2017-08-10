@@ -42,6 +42,7 @@ func main() {
 	router.GET("/v1/video/concat/:token", ffmpeg.ConcatVideoGet)
 	router.POST("/v1/video/logo", ffmpeg.VideoAddLogo)
 	router.GET("/v1/video/logo/:token", ffmpeg.VideoLogoGet)
+	router.POST("/v1/video/cut", ffmpeg.VideoCutOut)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

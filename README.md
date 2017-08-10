@@ -17,7 +17,7 @@ POST|/video/concat| Concat Multiple Videos | Concat Object | ConcatRespon Object
 GET|/video/concat/:token| Get Concat Progress | --- | ConcatRespon Object|
 POST|/video/logo| Add Logo In Video | Logo Object | LogoRespon Object|
 GET|/video/logo/:token| Get Logo Progress | --- | LogoRespon Object|
-
+POST|/video/cut| Cut Video | Cut Object | CutRespon Object|
 
 ## API Object
 
@@ -120,6 +120,22 @@ GET|/video/logo/:token| Get Logo Progress | --- | LogoRespon Object|
 }
 ```
 
+### Cut Object
+```
+{
+    "video":<ffmpeg object>,
+    "num": int // 切割视频个数,默认为5个
+    "inter", string // 视频长度, mm:ss格式.默认为3秒 00:03
+}
+```
+
+### CutRespon Object
+```
+{
+    "output": []string //切割后的视频文件路径
+}
+```
+
 ## Error Code
 
 Code|Value|
@@ -131,3 +147,4 @@ Code|Value|
 10005|视频变帧出错|
 10006|输入文件源为空|
 10007|输出文件为空|
+10008|获取视频长度错误|
