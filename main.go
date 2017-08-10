@@ -35,7 +35,7 @@ func main() {
 	router.POST("/v1/video/shot", ffmpeg.VideoShot)
 	router.POST("/v1/video/fps", ffmpeg.VideoFps)
 	router.GET("/v1/video/fps/:token", ffmpeg.VideoFpsGet)
-
+	router.POST("/v1/video/ratio", ffmpeg.GetVideoRatio)
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
