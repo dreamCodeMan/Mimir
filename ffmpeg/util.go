@@ -17,6 +17,9 @@ import (
 // _fps_token  保存fps帧率
 var _fps_token map[string]float32
 
+// _ratio_token 保存分辨率操作
+var _ratio_token map[string]float32
+
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // getFpsToken 获取fps帧率
@@ -26,6 +29,15 @@ func getFpsToken() map[string]float32 {
 	}
 
 	return _fps_token
+}
+
+// getRatioToken 获取分辨率
+func getRatioToken() map[string]float32 {
+	if _ratio_token == nil {
+		_ratio_token = make(map[string]float32)
+	}
+
+	return _ratio_token
 }
 
 func getToken(n int) string {

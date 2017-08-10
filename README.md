@@ -12,6 +12,7 @@ POST|/video/shot| Screen Shot | Shot Object | ShotRespon Object |
 POST|/video/fps| Change video fps | Fps Object | FpsRespon Object |
 GET|/video/fps/:token| Get video change progress | --- | FpsRespon Object |
 POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
+PUT|/video/ratio| Moidfy Video Ratio  | Ratio Object | RatioRespon Object |
 
 ## API Object
 
@@ -67,7 +68,8 @@ POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
 ### Ratio Object
 ```
 {
-    "video":<ffmpeg object>
+    "video":<ffmpeg object>,
+    "ratio": string //当修改分辨率时，此属性必填。填写准备要转换的分辨率，e.g. 1280x720
 }
 ```
 
@@ -75,6 +77,8 @@ POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
 ```
 {
     "ratio": string //视频分辨率
+    "token": string //视频唯一标示
+    "progress": float32 //分辨率转换进度
 }
 ```
 
