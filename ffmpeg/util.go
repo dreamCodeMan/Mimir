@@ -23,6 +23,9 @@ var _ratio_token map[string]float32
 // _concat_token 保存合并操作
 var _concat_token map[string]float32
 
+// _logo_token 保存Logo操作
+var _logo_token map[string]float32
+
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // getFpsToken 获取fps帧率
@@ -50,6 +53,15 @@ func getConcatToken() map[string]float32 {
 	}
 
 	return _concat_token
+}
+
+// getLogoToken 获取合并进度
+func getLogoToken() map[string]float32 {
+	if _logo_token == nil {
+		_logo_token = make(map[string]float32)
+	}
+
+	return _logo_token
 }
 
 func getToken(n int) string {
@@ -229,9 +241,9 @@ func _exec(command string, _dataChan chan chan string) error {
 // _paddingCMD 过滤命令,某些参数需要添加空格
 func _paddingCMD(cmd []string) []string {
 	var _c []string
-	for i, c := range cmd {
-		if strings.Contains(c, "filter_complex") {
-			cmd[i+1] += " "
+	for _, c := range cmd {
+		if strings.Contains(c, "<SPACE>") {
+			c = strings.Replace(c, "<SPACE>", " ", -1)
 		}
 
 		_c = append(_c, c)
