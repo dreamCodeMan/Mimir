@@ -11,6 +11,7 @@ GET| / | Test Connect| --- | String |
 POST|/video/shot| Screen Shot | Shot Object | ShotRespon Object |
 POST|/video/fps| Change video fps | Fps Object | FpsRespon Object |
 GET|/video/fps/:token| Get video change progress | --- | FpsRespon Object |
+POST|/video/ratio| Get Video Ratio  | Ratio Object | RatioRespon Object |
 
 ## API Object
 
@@ -63,6 +64,20 @@ GET|/video/fps/:token| Get video change progress | --- | FpsRespon Object |
 
 ```
 
+### Ratio Object
+```
+{
+    "video":<ffmpeg object>
+}
+```
+
+### RatioRespon Object
+```
+{
+    "ratio": string //视频分辨率
+}
+```
+
 ## Error Code
 
 Code|Value|
@@ -72,3 +87,4 @@ Code|Value|
 10003|FFmpeg命令支持失败|
 10004|Json转换为Body出错|
 10005|视频变帧出错|
+10006|输入文件源为空|
