@@ -89,7 +89,7 @@ func VideoFps(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 			if len(name) <= 1 {
 				fps.Ffmpeg.Fouput = outDir + file + "_" + strconv.Itoa(fps.Ffps)
 			} else {
-				n := strings.Join(name[:len(name)-2], ".")
+				n := strings.Join(name[:len(name)-1], ".")
 				fps.Ffmpeg.Fouput = outDir + n + "_" + strconv.Itoa(fps.Ffps) + "." + name[len(name)-1]
 			}
 			fmt.Println(fps.Ffmpeg.Fouput)
