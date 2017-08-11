@@ -277,16 +277,13 @@ func _generateRandomLength(duration string, num int) []string {
 				_time += "00:"
 			}
 
-			sec, err := strconv.ParseFloat(duartions[2], 64)
+			_, err = strconv.ParseFloat(duartions[2], 64)
 			if err != nil {
-				sec = 0
-			}
-
-			if sec > 1 {
+				_time += "00"
+			} else {
 				_rsec := rand.Float32() * 60.0
 				_time += fmt.Sprintf("%02.02g", _rsec)
-			} else {
-				_time += "00:"
+
 			}
 
 			ds = append(ds, _time)
