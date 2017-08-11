@@ -151,8 +151,12 @@ func _getVideoLength(input string) (string, error) {
 				_split := strings.Split(d, "Duration")
 				field := strings.Fields(_split[1])
 				vt := field[1]
-				// fmt.Println(vt)
-				return vt[:strings.Index(field[1], ",")], nil
+				// fmt.Println("GET LENGTH : ", vt)
+				if strings.Contains(vt, ",") {
+					return vt[:strings.Index(field[1], ",")], nil
+				}
+
+				return vt, nil
 			}
 		case <-_exit:
 			isExit = true

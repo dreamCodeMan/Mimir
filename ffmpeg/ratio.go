@@ -132,7 +132,7 @@ func MoidfyVideoRatio(w http.ResponseWriter, r *http.Request, p httprouter.Param
 		command += ratio.Ffmpeg.Fouput
 
 		cmds := []string{command}
-
+		fmt.Println(cmds)
 		_dataChan := make(chan chan string)
 		_errorChan := make(chan error)
 		_exit := make(chan int)
