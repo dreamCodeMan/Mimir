@@ -29,6 +29,8 @@ var _audio_token map[string]float32
 // _logo_token 保存Logo操作
 var _logo_token map[string]float32
 
+var _black_token map[string]float32
+
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 // getFpsToken 获取fps帧率
@@ -74,6 +76,15 @@ func getAudioToken() map[string]float32 {
 	}
 
 	return _audio_token
+}
+
+// getBlackToken 获取黑边进度
+func getBlackToken() map[string]float32 {
+	if _black_token == nil {
+		_black_token = make(map[string]float32)
+	}
+
+	return _black_token
 }
 
 func getToken(n int) string {

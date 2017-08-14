@@ -48,6 +48,8 @@ func main() {
 	router.GET("/v1/video/audio/:token", ffmpeg.GetAudioProgress)
 	router.PUT("/v1/video/audio", ffmpeg.MergeAudioWithVideo)
 	router.POST("/v1/video/separate", ffmpeg.VideoSeparate)
+	router.GET("/v1/video/black/:token", ffmpeg.GetBlackProgress)
+	router.POST("/v1/video/black", ffmpeg.AddBlackInVideo)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

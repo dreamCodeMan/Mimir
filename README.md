@@ -22,7 +22,8 @@ GET|/video/audio/:token| Get Audio Merge Progress | --- | AudioRespon Object|
 POST|/video/audio| Sperate Audio From Video | Audio Object | AudioRespon Object|
 PUT|/video/audio| Merge Audio From Video | Audio Object | AudioRespon Object|
 POST|/video/separate| Sperate Video | Audio Object | AudioRespon Object|
-
+GET|/video/black/:token| Get Black Add Progress | --- | BlackRespon Object|
+POST|/video/black| Add Black In Vido | Black Object | BlackRespon Object|
 ## API Object
 
 ### ffmpeg Object
@@ -154,6 +155,21 @@ POST|/video/separate| Sperate Video | Audio Object | AudioRespon Object|
     "audio":string //分离的音频/视频流文件路径
     "token":string //视频唯一标识码
     "progress":float32 //合并操作进度
+}
+```
+
+### Black Object
+```
+{
+    "video":<ffmpeg object>
+}
+```
+### BlackResponse Object
+```
+{
+    "token":string //视频唯一标识码
+    "progress":float32 //合并操作进度
+    "output": string //输出的文件路径
 }
 ```
 

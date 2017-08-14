@@ -89,7 +89,6 @@ func VideoSeparate(w http.ResponseWriter, r *http.Request, p httprouter.Params) 
 			n := strings.Join(name[:len(name)-1], ".")
 			audio.Ffmpeg.Fouput = outDir + n + "_out." + name[len(name)-1]
 		}
-		// audio.Ffmpeg.Fouput = audio.Ffmpeg.Finput
 	}
 
 	// _originTime, err := _getVideoLength(audio.Ffmpeg.Finput)
