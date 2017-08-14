@@ -18,6 +18,10 @@ GET|/video/concat/:token| Get Concat Progress | --- | ConcatRespon Object|
 POST|/video/logo| Add Logo In Video | Logo Object | LogoRespon Object|
 GET|/video/logo/:token| Get Logo Progress | --- | LogoRespon Object|
 POST|/video/cut| Cut Video | Cut Object | CutRespon Object|
+GET|/video/audio/:token| Get Audio Merge Progress | --- | AudioRespon Object|
+POST|/video/audio| Sperate Audio From Video | Audio Object | AudioRespon Object|
+PUT|/video/audio| Merge Audio From Video | Audio Object | AudioRespon Object|
+POST|/video/separate| Sperate Video | Audio Object | AudioRespon Object|
 
 ## API Object
 
@@ -136,6 +140,23 @@ POST|/video/cut| Cut Video | Cut Object | CutRespon Object|
 }
 ```
 
+### Audio Object
+```
+{
+    "video":<ffmpeg object>,
+    "audio":string // 当准备将视频和音频进行合并时，此属性为必填项
+}
+```
+
+### AudioResponse Object
+```
+{
+    "audio":string //分离的音频/视频流文件路径
+    "token":string //视频唯一标识码
+    "progress":float32 //合并操作进度
+}
+```
+
 ## Error Code
 
 Code|Value|
@@ -149,3 +170,4 @@ Code|Value|
 10007|输出文件为空|
 10008|获取视频长度错误|
 10009|视频合并数量大于5个|
+10010|音频流文件不得为空|

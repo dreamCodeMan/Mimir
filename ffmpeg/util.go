@@ -23,6 +23,9 @@ var _ratio_token map[string]float32
 // _concat_token 保存合并操作
 var _concat_token map[string]float32
 
+// _audio_token 保存合并操作
+var _audio_token map[string]float32
+
 // _logo_token 保存Logo操作
 var _logo_token map[string]float32
 
@@ -62,6 +65,15 @@ func getLogoToken() map[string]float32 {
 	}
 
 	return _logo_token
+}
+
+// getAudioToken 获取合并进度
+func getAudioToken() map[string]float32 {
+	if _audio_token == nil {
+		_audio_token = make(map[string]float32)
+	}
+
+	return _audio_token
 }
 
 func getToken(n int) string {

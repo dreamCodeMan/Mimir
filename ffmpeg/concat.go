@@ -78,8 +78,6 @@ func ConcatVideo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 		return
 	}
 
-	concat.FisRandom = false
-
 	if len(concat.Finput) > MAX_VIDEO_LEN {
 		w.WriteHeader(ERROR)
 		fmt.Fprintf(w, TOO_MANY_CONCAT_REQ_ERROR)
@@ -132,6 +130,7 @@ func ConcatVideo(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
 
 		go func() {
 			for _, c := range cmds {
+				time.Sleep(time.Duration(1) * time.Second)
 				err = _exec(c, _dataChan)
 				if err != nil {
 					_errorChan <- err
@@ -205,7 +204,7 @@ func MultiConcatVideo(w http.ResponseWriter, r *http.Request, p httprouter.Param
 		return
 	}
 
-	concat.FisRandom = false
+	fmt.Println("随机标志", concat.FisRandom)
 
 	if concat.Foutput == "" {
 		w.WriteHeader(ERROR)
@@ -278,6 +277,7 @@ func MultiConcatVideo(w http.ResponseWriter, r *http.Request, p httprouter.Param
 
 		go func() {
 			for _, c := range cmds {
+				time.Sleep(time.Duration(1) * time.Second)
 				err = _exec(c, _dataChan)
 				if err != nil {
 					_errorChan <- err
@@ -341,6 +341,7 @@ func _concatCmd(video []string, isRadom bool) []string {
 		if isRadom {
 			_dict := make(map[int]int)
 			for {
+				fmt.Println(video, len(video))
 				index := rand.Intn(len(video))
 				if _, ok := _dict[index]; !ok {
 					_dict[index] = 0
@@ -375,19 +376,36 @@ func _concatCmd(video []string, isRadom bool) []string {
 
 	_index := 0
 	var _video []string
+	var _randomVideo []string
 	needStop := false
+	if isRadom {
+		_dict := make(map[int]int)
+		for {
+			index := rand.Intn(len(video))
+			if _, ok := _dict[index]; !ok {
+				_dict[index] = 0
+				_randomVideo = append(_randomVideo, video[index])
+			}
+
+			if len(_randomVideo) >= len(video) {
+				break
+			}
+		}
+	}
 	for {
 		if needStop {
 			return _video
 		}
 
-		if (_index + MAX_VIDEO_LEN) < len(video) {
-			_tvideo := video[_index : _index+MAX_VIDEO_LEN]
+		if (_index + MAX_VIDEO_LEN) < len(_randomVideo) {
+			_tvideo := _randomVideo[_index : _index+MAX_VIDEO_LEN]
 			_video = append(_video, _concatCmd(_tvideo, isRadom)...)
 			_index += MAX_VIDEO_LEN
 		} else {
-			_tvideo := video[_index : len(video)-1]
-			_video = append(_video, _concatCmd(_tvideo, isRadom)...)
+			_tvideo := _randomVideo[_index:len(video)]
+			if len(_tvideo) > 1 {
+				_video = append(_video, _concatCmd(_tvideo, isRadom)...)
+			}
 			needStop = true
 		}
 	}
